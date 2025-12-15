@@ -24,6 +24,11 @@ let wordsDestroyed = 0;
 let spawnRate = 2000;
 let lastSpawnTime = 0;
 
+let level=1;
+let speedMultiplier=1;
+let showLevelUp=false;
+let levelUpTime=0;
+
 highScoreElement.innerText = highScore;
 updateLivesUI();
 
@@ -45,7 +50,7 @@ class Enemy {
     this.x = x;
     this.y = y;
     this.text = text;
-    this.speed = 1 + Math.random();
+    this.speed = (1 + Math.random()) * speedMultiplier;
     this.color = neonColors[Math.floor(Math.random() * neonColors.length)];
   }
 
@@ -132,6 +137,13 @@ window.addEventListener("keydown", (e) => {
         score += 10;
         scoreElement.innerText = score;
         wordsDestroyed++;
+
+        if (score >= level * 100) {
+            level++;
+            speedMultiplier += 0.35; 
+            showLevelUp = true;
+            levelUpTime = Date.now();
+        }
       }
       break;
     }
@@ -143,6 +155,16 @@ function gameLoop(timestamp) {
   if (isGameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (showLevelUp) {
+    ctx.fillStyle = "#ffff00";
+    ctx.font = "40px Courier New";
+    ctx.textAlign = "center";
+    ctx.fillText(`LEVEL ${level}!`, canvas.width / 2, canvas.height / 2);
+    if (Date.now() - levelUpTime > 1200) {
+        showLevelUp = false;
+    }
+}
 
   if (isPaused) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
