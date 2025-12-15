@@ -18,7 +18,15 @@ let lastSpawnTime = 0;
 const wordList = [
     "code", "bug", "fix", "git", "push", "pull", "merge", 
     "java", "node", "html", "css", "react", "vue", "data",
-    "loop", "if", "else", "var", "let", "const", "array"
+    "loop", "if", "else", "var", "let", "const", "array","binary", "cache", "thread", "process", "memory",
+  "pointer", "stack", "queue", "heap", "tree",
+  "graph", "hash", "index", "search", "sort",
+  "encrypt", "decrypt", "token", "auth", "login",
+  "logout", "session", "cookie", "middleware", "router",
+  "endpoint", "request", "response", "status", "timeout",
+  "latency", "bandwidth", "cloud", "aws", "azure",
+  "gcp", "ci", "cd", "pipeline", "monitor",
+  "log", "trace", "error", "exception", "retry"
 ];
 
 
