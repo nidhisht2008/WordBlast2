@@ -57,7 +57,24 @@ class Enemy {
 /* Spawn Enemy */
 function spawnEnemy() {
     const text = wordList[Math.floor(Math.random() * wordList.length)];
-    const x = Math.random() * (canvas.width - 150) + 20;
+
+    let x;
+    let safe = false;
+    let attempts = 0;
+
+    while (!safe && attempts < 10) {
+        x = Math.random() * (canvas.width - 150) + 20;
+        safe = true;
+
+        for (let enemy of enemies) {
+            if (Math.abs(enemy.x - x) < 120) { 
+                safe = false;
+                break;
+            }
+        }
+        attempts++;
+    }
+
     enemies.push(new Enemy(x, -20, text));
 }
 
