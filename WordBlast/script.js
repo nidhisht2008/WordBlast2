@@ -12,6 +12,7 @@ canvas.height = 600;
 /* Game State */
 let score = 0;
 let highScore = localStorage.getItem('highScore') || 0;
+let isPaused=false;
 let isGameOver = false;
 let spawnRate = 2000;
 let lastSpawnTime = 0;
@@ -74,7 +75,12 @@ function gameOver() {
 
 /* Keyboard Input */
 window.addEventListener("keydown", (e) => {
-    if (isGameOver) return;
+    if (e.key === "Escape") {
+        isPaused = !isPaused;
+        return;
+    }
+
+    if (isGameOver||isPaused) return;
 
     const key = e.key.toLowerCase();
 
@@ -98,6 +104,22 @@ function gameLoop(timestamp) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if (isPaused) {
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#0f0";
+    ctx.font = "40px Courier New";
+    ctx.textAlign = "center";
+    ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+
+    ctx.font = "16px Courier New";
+    ctx.fillText("Press ESC to resume", canvas.width / 2, canvas.height / 2 + 40);
+
+    requestAnimationFrame(gameLoop);
+    return;
+    }
+    
     if (timestamp - lastSpawnTime > spawnRate) {
         spawnEnemy();
         lastSpawnTime = timestamp;
