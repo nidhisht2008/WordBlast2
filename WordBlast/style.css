@@ -2,6 +2,11 @@ body {
     margin: 0;
     padding: 0;
     background-color: #1a1a1a;
+    background-image: url("download.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: #0f0;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
@@ -110,3 +115,4 @@ button:hover {
     color: #0f0;
     text-decoration: underline;
 }
+
