@@ -13,6 +13,8 @@ canvas.height = 600;
 let score = 0;
 let highScore = localStorage.getItem('highScore') || 0;
 let isPaused=false;
+let startTime= Date.now();
+let wordsDestroyed=0;
 let isGameOver = false;
 let spawnRate = 2000;
 let lastSpawnTime = 0;
@@ -70,6 +72,17 @@ function gameOver() {
         highScoreElement.innerText = highScore;
     }
 
+    const elapsedTimeMs = Date.now() - startTime;
+    const elapsedMinutes = elapsedTimeMs / 60000;
+
+    const wpm = elapsedMinutes > 0
+        ? Math.round(wordsDestroyed / elapsedMinutes)
+        : 0;
+    const wpmElement = document.createElement("p");
+    wpmElement.innerHTML = `<strong>WPM:</strong> ${wpm}`;
+    wpmElement.style.marginTop = "10px";
+    gameOverScreen.appendChild(wpmElement);
+
     gameOverScreen.classList.remove("hidden");
 }
 
@@ -92,6 +105,7 @@ window.addEventListener("keydown", (e) => {
                 enemies.splice(i, 1);
                 score += 10;
                 scoreElement.innerText = score;
+                wordsDestroyed += 1;
             }
             break;
         }
@@ -119,7 +133,7 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
     return;
     }
-    
+
     if (timestamp - lastSpawnTime > spawnRate) {
         spawnEnemy();
         lastSpawnTime = timestamp;
