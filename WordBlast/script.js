@@ -1,17 +1,20 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-const scoreElement = document.getElementById("score");
-const highScoreElement = document.getElementById("high-score");
-const finalScoreElement = document.getElementById("final-score");
-const gameOverScreen = document.getElementById("game-over");
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.focus();
+const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('high-score');
+const finalScoreElement = document.getElementById('final-score');
+const gameOverScreen = document.getElementById('game-over');
+const livesElement = document.getElementById('lives');
+const typeFeedback = document.getElementById('type-feedback');
 
 canvas.width = 800;
 canvas.height = 600;
 
 
 let score = 0;
-let highScore = localStorage.getItem("highScore") || 0;
+let highScore = localStorage.getItem('highScore') || 0;
+let lives = 3;
 let isPaused = false;
 let isGameOver = false;
 
@@ -22,6 +25,7 @@ let spawnRate = 2000;
 let lastSpawnTime = 0;
 
 highScoreElement.innerText = highScore;
+updateLivesUI();
 
 
 const wordList = [
@@ -34,7 +38,6 @@ const wordList = [
 const neonColors = ["#00ffff", "#ff00ff", "#ffff00", "#00ff00", "#ff6600"];
 
 let enemies = [];
-let activeEnemy = null; // ⭐ visual typing lock-on
 
 
 class Enemy {
@@ -43,8 +46,7 @@ class Enemy {
     this.y = y;
     this.text = text;
     this.speed = 1 + Math.random();
-    this.baseColor = neonColors[Math.floor(Math.random() * neonColors.length)];
-    this.color = this.baseColor;
+    this.color = neonColors[Math.floor(Math.random() * neonColors.length)];
   }
 
   draw() {
@@ -83,6 +85,11 @@ function spawnEnemy() {
 }
 
 
+function updateLivesUI() {
+  livesElement.innerText = "❤️".repeat(lives);
+}
+
+
 function gameOver() {
   isGameOver = true;
   finalScoreElement.innerText = score;
@@ -95,7 +102,6 @@ function gameOver() {
 
   const elapsedMinutes = (Date.now() - startTime) / 60000;
   const wpm = elapsedMinutes > 0 ? Math.round(wordsDestroyed / elapsedMinutes) : 0;
-
   document.getElementById("wpm-score").innerHTML = `<strong>WPM:</strong> ${wpm}`;
 
   gameOverScreen.classList.remove("hidden");
@@ -110,24 +116,18 @@ window.addEventListener("keydown", (e) => {
 
   if (isGameOver || isPaused) return;
 
+  typeFeedback.innerText = e.key.toUpperCase();
+  typeFeedback.style.opacity = 1;
+  setTimeout(() => (typeFeedback.style.opacity = 0), 150);
+
   const key = e.key.toLowerCase();
 
   for (let i = 0; i < enemies.length; i++) {
     if (enemies[i].text[0]?.toLowerCase() === key) {
-
-     
-      if (activeEnemy && activeEnemy !== enemies[i]) {
-        activeEnemy.color = activeEnemy.baseColor;
-      }
-
-      
-      activeEnemy = enemies[i];
-      activeEnemy.color = "#ffffff"; 
-
       enemies[i].text = enemies[i].text.slice(1);
+      enemies[i].color = "#ffffff"; 
 
       if (enemies[i].text === "") {
-        activeEnemy = null;
         enemies.splice(i, 1);
         score += 10;
         scoreElement.innerText = score;
@@ -147,15 +147,10 @@ function gameLoop(timestamp) {
   if (isPaused) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = "#0f0";
     ctx.font = "40px Courier New";
     ctx.textAlign = "center";
     ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
-
-    ctx.font = "16px Courier New";
-    ctx.fillText("Press ESC to resume", canvas.width / 2, canvas.height / 2 + 40);
-
     requestAnimationFrame(gameLoop);
     return;
   }
@@ -166,12 +161,20 @@ function gameLoop(timestamp) {
     if (spawnRate > 500) spawnRate -= 20;
   }
 
-  for (let enemy of enemies) {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const enemy = enemies[i];
     enemy.update();
     enemy.draw();
 
     if (enemy.y > canvas.height) {
-      gameOver();
+      enemies.splice(i, 1);
+      lives--;
+      updateLivesUI();
+
+      if (lives <= 0) {
+        gameOver();
+        return;
+      }
     }
   }
 
