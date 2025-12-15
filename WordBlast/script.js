@@ -1,6 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.focus();
+
 const scoreElement = document.getElementById('score');
 const highScoreElement = document.getElementById('high-score');
 const finalScoreElement = document.getElementById('final-score');
@@ -11,7 +12,7 @@ const typeFeedback = document.getElementById('type-feedback');
 canvas.width = 800;
 canvas.height = 600;
 
-
+/* -------------------- GAME STATE -------------------- */
 let score = 0;
 let highScore = localStorage.getItem('highScore') || 0;
 let lives = 3;
@@ -24,27 +25,31 @@ let wordsDestroyed = 0;
 let spawnRate = 2000;
 let lastSpawnTime = 0;
 
-let level=1;
-let speedMultiplier=1;
-let showLevelUp=false;
-let levelUpTime=0;
+let level = 1;
+let speedMultiplier = 1;
+let showLevelUp = false;
+let levelUpTime = 0;
 
+/* -------------------- BOSS SYSTEM -------------------- */
+let boss = null;
+let isBossActive = false;
+let nextBossScore = 1000;
+
+/* -------------------- UI INIT -------------------- */
 highScoreElement.innerText = highScore;
 updateLivesUI();
 
-
+/* -------------------- WORD DATA -------------------- */
 const wordList = [
   "code","bug","fix","git","push","pull","merge",
   "html","css","react","node","array","stack",
   "queue","hash","tree","graph","cloud","server"
 ];
 
-
 const neonColors = ["#00ffff", "#ff00ff", "#ffff00", "#00ff00", "#ff6600"];
-
 let enemies = [];
 
-
+/* -------------------- ENEMY CLASS -------------------- */
 class Enemy {
   constructor(x, y, text) {
     this.x = x;
@@ -65,13 +70,44 @@ class Enemy {
   }
 }
 
+/* -------------------- BOSS CLASS -------------------- */
+class BossWord {
+  constructor(text) {
+    this.text = text;
+    this.maxHealth = text.length;
+    this.health = text.length;
+    this.x = canvas.width / 2 - 260;
+    this.y = 80;
+    this.speed = 0.3;
+  }
 
+  draw() {
+    // Boss word
+    ctx.font = "32px Courier New";
+    ctx.fillStyle = "#ff4444";
+    ctx.fillText(this.text, this.x, this.y);
+
+    // Health bar background
+    ctx.fillStyle = "#333";
+    ctx.fillRect(this.x, this.y - 35, 520, 14);
+
+    // Health bar
+    ctx.fillStyle = "#ff0000";
+    const healthWidth = (this.health / this.maxHealth) * 520;
+    ctx.fillRect(this.x, this.y - 35, healthWidth, 14);
+  }
+
+  update() {
+    this.y += this.speed;
+  }
+}
+
+/* -------------------- SPAWN ENEMY -------------------- */
 function spawnEnemy() {
-  const text = wordList[Math.floor(Math.random() * wordList.length)];
+  if (isBossActive) return;
 
-  let x;
-  let safe = false;
-  let attempts = 0;
+  const text = wordList[Math.floor(Math.random() * wordList.length)];
+  let x, safe = false, attempts = 0;
 
   while (!safe && attempts < 10) {
     x = Math.random() * (canvas.width - 150) + 20;
@@ -89,11 +125,10 @@ function spawnEnemy() {
   enemies.push(new Enemy(x, -20, text));
 }
 
-
+/* -------------------- UI HELPERS -------------------- */
 function updateLivesUI() {
   livesElement.innerText = "❤️".repeat(lives);
 }
-
 
 function gameOver() {
   isGameOver = true;
@@ -112,7 +147,7 @@ function gameOver() {
   gameOverScreen.classList.remove("hidden");
 }
 
-
+/* -------------------- INPUT HANDLER -------------------- */
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     isPaused = !isPaused;
@@ -121,16 +156,32 @@ window.addEventListener("keydown", (e) => {
 
   if (isGameOver || isPaused) return;
 
+  const key = e.key.toLowerCase();
+
   typeFeedback.innerText = e.key.toUpperCase();
   typeFeedback.style.opacity = 1;
   setTimeout(() => (typeFeedback.style.opacity = 0), 150);
 
-  const key = e.key.toLowerCase();
+  /* ----- BOSS INPUT ----- */
+  if (isBossActive && boss) {
+    if (boss.text[0]?.toLowerCase() === key) {
+      boss.text = boss.text.slice(1);
+      boss.health--;
 
+      if (boss.health <= 0) {
+        boss = null;
+        isBossActive = false;
+        nextBossScore += 100;
+      }
+    }
+    return;
+  }
+
+  /* ----- NORMAL ENEMIES ----- */
   for (let i = 0; i < enemies.length; i++) {
     if (enemies[i].text[0]?.toLowerCase() === key) {
       enemies[i].text = enemies[i].text.slice(1);
-      enemies[i].color = "#ffffff"; 
+      enemies[i].color = "#ffffff";
 
       if (enemies[i].text === "") {
         enemies.splice(i, 1);
@@ -139,10 +190,16 @@ window.addEventListener("keydown", (e) => {
         wordsDestroyed++;
 
         if (score >= level * 100) {
-            level++;
-            speedMultiplier += 0.35; 
-            showLevelUp = true;
-            levelUpTime = Date.now();
+          level++;
+          speedMultiplier += 0.35;
+          showLevelUp = true;
+          levelUpTime = Date.now();
+        }
+
+        if (score >= nextBossScore && !isBossActive) {
+          isBossActive = true;
+          boss = new BossWord("supercalifragilisticexpialidocious");
+          enemies = [];
         }
       }
       break;
@@ -150,7 +207,7 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-
+/* -------------------- GAME LOOP -------------------- */
 function gameLoop(timestamp) {
   if (isGameOver) return;
 
@@ -161,10 +218,8 @@ function gameLoop(timestamp) {
     ctx.font = "40px Courier New";
     ctx.textAlign = "center";
     ctx.fillText(`LEVEL ${level}!`, canvas.width / 2, canvas.height / 2);
-    if (Date.now() - levelUpTime > 1200) {
-        showLevelUp = false;
-    }
-}
+    if (Date.now() - levelUpTime > 1200) showLevelUp = false;
+  }
 
   if (isPaused) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -177,12 +232,19 @@ function gameLoop(timestamp) {
     return;
   }
 
-  if (timestamp - lastSpawnTime > spawnRate) {
+  if (!isBossActive && timestamp - lastSpawnTime > spawnRate) {
     spawnEnemy();
     lastSpawnTime = timestamp;
     if (spawnRate > 500) spawnRate -= 20;
   }
 
+  /* ----- BOSS UPDATE ----- */
+  if (isBossActive && boss) {
+    boss.update();
+    boss.draw();
+  }
+
+  /* ----- ENEMY UPDATE ----- */
   for (let i = enemies.length - 1; i >= 0; i--) {
     const enemy = enemies[i];
     enemy.update();
