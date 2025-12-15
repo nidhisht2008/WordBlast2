@@ -70,3 +70,27 @@ button {
 button:hover {
     background: #fff;
 }
+.score-badge {
+    background: rgba(0, 255, 0, 0.15);
+    border: 2px solid #0f0;
+    padding: 8px 14px;
+    margin-right: 10px;
+    display: inline-block;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+    text-shadow: 0 0 5px #0f0;
+    border-radius: 6px;
+}
+
+.score-badge span {
+    margin-left: 6px;
+    color: #fff;
+}
+
+.score-badge.high {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: gold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 0 5px gold;
+}

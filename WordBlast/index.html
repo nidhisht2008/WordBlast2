@@ -9,7 +9,15 @@
 <body>
     <div id="game-container">
         <div id="ui-layer">
-            <div id="score-board">Score: <span id="score">0</span></div>
+            <div id="score-board">
+                <div class="score-badge">
+                 Score <span id="score">0</span>
+                </div>
+
+                <div class="score-badge high">
+                High <span id="high-score">0</span>
+                </div>
+            </div>
             <div id="game-over" class="hidden">
                 <h1>GAME OVER</h1>
                 <p>Final Score: <span id="final-score">0</span></p>
