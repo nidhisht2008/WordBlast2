@@ -1,48 +1,47 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
 const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('high-score');
 const finalScoreElement = document.getElementById('final-score');
 const gameOverScreen = document.getElementById('game-over');
-
 
 canvas.width = 800;
 canvas.height = 600;
 
-
+/* Game State */
 let score = 0;
+let highScore = localStorage.getItem('highScore') || 0;
 let isGameOver = false;
-let spawnRate = 2000; 
+let spawnRate = 2000;
 let lastSpawnTime = 0;
 
+highScoreElement.innerText = highScore;
 
+/* Word List */
 const wordList = [
-    "code", "bug", "fix", "git", "push", "pull", "merge", 
-    "java", "node", "html", "css", "react", "vue", "data",
-    "loop", "if", "else", "var", "let", "const", "array","binary", "cache", "thread", "process", "memory",
-  "pointer", "stack", "queue", "heap", "tree",
-  "graph", "hash", "index", "search", "sort",
-  "encrypt", "decrypt", "token", "auth", "login",
-  "logout", "session", "cookie", "middleware", "router",
-  "endpoint", "request", "response", "status", "timeout",
-  "latency", "bandwidth", "cloud", "aws", "azure",
-  "gcp", "ci", "cd", "pipeline", "monitor",
-  "log", "trace", "error", "exception", "retry"
+    "code","bug","fix","git","push","pull","merge",
+    "html","css","react","node","array","stack",
+    "queue","hash","tree","graph","cloud","server"
 ];
 
+/* Neon colors (Issue: Change Enemy Color) */
+const neonColors = ["#00ffff", "#ff00ff", "#ffff00", "#00ff00", "#ff6600"];
 
 let enemies = [];
 
+/* Enemy Class */
 class Enemy {
     constructor(x, y, text) {
         this.x = x;
         this.y = y;
         this.text = text;
-        this.speed = 1 + Math.random(); 
-        this.color = '#0f0';
+        this.speed = 1 + Math.random();
+        this.color = neonColors[Math.floor(Math.random() * neonColors.length)];
     }
 
     draw() {
-        ctx.font = '20px Courier New';
+        ctx.font = "26px Courier New";
         ctx.fillStyle = this.color;
         ctx.fillText(this.text, this.x, this.y);
     }
@@ -52,27 +51,35 @@ class Enemy {
     }
 }
 
+/* Spawn Enemy */
 function spawnEnemy() {
     const text = wordList[Math.floor(Math.random() * wordList.length)];
-    const x = Math.random() * (canvas.width - 100) + 50;
-    const y = -20; 
-    enemies.push(new Enemy(x, y, text));
+    const x = Math.random() * (canvas.width - 150) + 20;
+    enemies.push(new Enemy(x, -20, text));
 }
 
+/* Game Over */
 function gameOver() {
     isGameOver = true;
     finalScoreElement.innerText = score;
-    gameOverScreen.classList.remove('hidden');
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+        highScoreElement.innerText = highScore;
+    }
+
+    gameOverScreen.classList.remove("hidden");
 }
 
-
-window.addEventListener('keydown', (e) => {
+/* Keyboard Input */
+window.addEventListener("keydown", (e) => {
     if (isGameOver) return;
 
     const key = e.key.toLowerCase();
 
     for (let i = 0; i < enemies.length; i++) {
-        if (enemies[i].text[0] && enemies[i].text[0].toLowerCase() === key) {
+        if (enemies[i].text[0]?.toLowerCase() === key) {
             enemies[i].text = enemies[i].text.slice(1);
 
             if (enemies[i].text === "") {
@@ -85,22 +92,19 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+/* Game Loop */
 function gameLoop(timestamp) {
     if (isGameOver) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
     if (timestamp - lastSpawnTime > spawnRate) {
         spawnEnemy();
         lastSpawnTime = timestamp;
-
-        if (spawnRate > 500) spawnRate -= 10;
+        if (spawnRate > 500) spawnRate -= 20;
     }
 
-
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        let enemy = enemies[i];
+    for (let enemy of enemies) {
         enemy.update();
         enemy.draw();
 
@@ -111,6 +115,5 @@ function gameLoop(timestamp) {
 
     requestAnimationFrame(gameLoop);
 }
-
 
 requestAnimationFrame(gameLoop);

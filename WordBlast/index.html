@@ -3,29 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WordBlast - PatchFest</title>
+    <title>WordBlast – PatchFest 2025</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- Game Title (Issue: Update Game Title & Header) -->
+    <h1 class="game-title">WordBlast</h1>
+
     <div id="game-container">
         <div id="ui-layer">
+            <!-- Score Board (Styled Badges) -->
             <div id="score-board">
                 <div class="score-badge">
-                 Score <span id="score">0</span>
+                    Score <span id="score">0</span>
                 </div>
-
                 <div class="score-badge high">
-                High <span id="high-score">0</span>
+                    High <span id="high-score">0</span>
                 </div>
             </div>
+
+            <!-- Game Over Screen -->
             <div id="game-over" class="hidden">
                 <h1>GAME OVER</h1>
                 <p>Final Score: <span id="final-score">0</span></p>
                 <button onclick="location.reload()">Restart</button>
             </div>
         </div>
+
         <canvas id="gameCanvas"></canvas>
     </div>
+
+    <!-- Footer (Issue: Add Footer with Credits) -->
+    <footer class="footer">
+        Built for PatchFest 2025 · 
+        <a href="#" target="_blank">View Source</a>
+    </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
